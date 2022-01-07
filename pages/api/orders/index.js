@@ -1,6 +1,5 @@
 import formidable from "formidable";
 import fs from "fs";
-import crypto from "crypto";
 import Client from "@veryfi/veryfi-sdk";
 import { PrismaClient } from "@prisma/client";
 
@@ -18,14 +17,16 @@ const get = async (req, res) => {
       items: true,
     },
   });
-  return res.status(200).send(orders);
+  return res.status(200).json(orders);
 };
 
 const post = async (req, res) => {
   //const filePath = await saveFile(req);
   const data = fs.readFileSync("./public/example.json"); // await getOrderData(filePath);
-  const { line_items, img_url, total } = JSON.parse(data);
+  const { id, line_items, total } = JSON.parse(data);
   const order = {
+    verifyId: id,
+    total,
     items: line_items.map((i) => {
       return {
         item: i.description,
@@ -33,9 +34,6 @@ const post = async (req, res) => {
         price: i.price,
       };
     }),
-    token: crypto.randomBytes(5).toString('hex'),
-    total,
-    img_url,
   };
   const savedOrder = await saveOrder(order);
   return res.status(201).send(savedOrder);
@@ -44,6 +42,7 @@ const post = async (req, res) => {
 const saveOrder = async (order) => {
   const savedOrder = await prisma.order.create({
     data: {
+      verifyId: order.verifyId,
       total: order.total,
       imageURL: order.img_url,
       items: { create: order.items },

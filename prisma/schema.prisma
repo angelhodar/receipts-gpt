@@ -12,10 +12,9 @@ datasource db {
 
 model Order {
   id        Int         @id @default(autoincrement())
+  verifyId  Int         @unique
   createdAt DateTime    @default(now())
-  token     String      @unique
   total     Float
-  imageURL  String
   items     OrderItem[]
 }
 

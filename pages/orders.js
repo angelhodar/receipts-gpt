@@ -1,54 +1,30 @@
-import React, { useCallback } from "react";
-import { Center, useColorModeValue } from "@chakra-ui/react";
-import { useDropzone } from "react-dropzone";
+import * as React from "react";
+import { Box, SimpleGrid, useColorModeValue } from "@chakra-ui/react";
+import Order from "../components/Order";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 export default function Orders({ orders }) {
-  const onDrop = useCallback((acceptedFiles) => {
-    upload(acceptedFiles[0]);
-  }, []);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    maxFiles: 1,
-    multiple: false,
-  });
-
-  const upload = async (image) => {
-    const body = new FormData();
-    body.append("file", image);
-    try {
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        body,
-      });
-      console.log(await response.json());
-    } catch (e) {
-      console.log("Error");
-    }
-  };
-
   return (
-    <Center
-      p={10}
-      cursor="pointer"
-      bg={isDragActive ? activeBg : "transparent"}
-      _hover={{ bg: activeBg }}
-      transition="background-color 0.2s ease"
-      borderRadius={4}
-      border="3px dashed"
-      borderColor={borderColor}
-      {...getRootProps()}
+    <Box
+      bg={useColorModeValue("gray.100", "gray.800")}
+      px={{ base: "6", md: "8" }}
+      py="12"
     >
-      <input {...getInputProps()} />
-      <p>{dropText}</p>
-    </Center>
+      <Box as="section">
+        <SimpleGrid columns={{ base: 1, md: 3 }} spacing="6">
+          {orders.map((order) => (
+            <Order key={order.id} order={order} />
+          ))}
+        </SimpleGrid>
+      </Box>
+    </Box>
   );
 }
 
 export const getServerSideProps = async () => {
-  const posts = await prisma.post.findMany();
-  return { props: { posts } };
+  let orders = await prisma.order.findMany();
+  orders.forEach(o => o.createdAt = o.createdAt.toISOString());
+  return { props: { orders }};
 };
