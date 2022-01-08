@@ -8,19 +8,19 @@ const get = async (req, res) => {
 
 const post = async (req, res) => {
   const { orderId, amount } = req.body;
-  const createdSession = await getCheckoutSession(orderId);
-
-  if (createdSession) {
+  //const createdSession = await getCheckoutSession(orderId);
+  try {
+    const session = await createCheckoutSession(req, orderId, amount);
+    res.status(200).json(session);
+  } catch (err) {
+    console.log(err);
+    res.status(err.statusCode || 500).json(err.message);
+  }
+  /*if (createdSession) {
     res.status(200).json({ session: createdSession });
   } else {
-    try {
-      const session = await createCheckoutSession(req, orderId, amount);
-      res.status(200).json(session);
-    } catch (err) {
-      console.log(err);
-      res.status(err.statusCode || 500).json(err.message);
-    }
-  }
+    
+  }*/
 };
 
 const getCheckoutSession = async (orderId) => {
