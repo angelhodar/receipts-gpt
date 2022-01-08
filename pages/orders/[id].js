@@ -41,7 +41,7 @@ export default function Order() {
       const result = await stripe.redirectToCheckout({
         sessionId: session.id,
       });
-      if (result.error) alert(result.error.message);
+      if (result.error) console.log(result.error.message);
     } catch (e) {
       console.log("Error");
     }
