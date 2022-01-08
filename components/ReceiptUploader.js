@@ -1,12 +1,21 @@
 import React, { useState, useRef } from "react";
-import { Button, Stack } from "@chakra-ui/react";
+import { Center, Button, Stack } from "@chakra-ui/react";
 import { isMobile } from "react-device-detect";
+import QRCode from "react-qr-code";
+import Link from "next/link";
 import { FiUpload, FiCamera } from "react-icons/fi";
 
-export default function ReceiptUploader(props) {
+export default function ReceiptUploader() {
+  const [orderId, setOrderId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const fileInput = useRef(null);
   const cameraInput = useRef(null);
+
+  const getRedirectURL = () => {
+    return typeof window !== "undefined"
+      ? `${window.location.hostname}/orders/${orderId}`
+      : "";
+  };
 
   const handleFileUpload = (input) => input.current.click();
   const handleFileChange = (e) => upload(e.target.files[0]);
@@ -20,7 +29,8 @@ export default function ReceiptUploader(props) {
         method: "POST",
         body,
       });
-      console.log(await response.json());
+      const { id } = await response.json();
+      setOrderId(id);
     } catch (e) {
       console.log("Error");
     }
@@ -43,47 +53,67 @@ export default function ReceiptUploader(props) {
         capture="environment"
         style={{ display: "none" }}
       />
-      <Stack
-        direction={{ base: "column", sm: "row" }}
-        mt="10"
-        justify="center"
-        spacing={{ base: "3", md: "5" }}
-        maxW="md"
-        mx="auto"
-      >
-        <Button
-          isLoading={isLoading}
-          leftIcon={<FiUpload />}
-          as="a"
-          href="#"
-          size="lg"
-          h="16"
-          px="10"
-          onClick={() => handleFileUpload(fileInput)}
-          colorScheme="blue"
-          fontWeight="bold"
-          flex={{ md: "1" }}
+      {orderId == null ? (
+        <Stack
+          direction={{ base: "column", sm: "row" }}
+          mt="10"
+          justify="center"
+          spacing={{ base: "3", md: "5" }}
+          maxW="md"
+          mx="auto"
         >
-          Upload bill
-        </Button>
-        {isMobile && (
           <Button
             isLoading={isLoading}
-            leftIcon={<FiCamera />}
+            leftIcon={<FiUpload />}
             as="a"
-            flex={{ md: "1" }}
-            colorScheme="blue"
-            onClick={() => handleFileUpload(cameraInput)}
             href="#"
             size="lg"
             h="16"
             px="10"
+            onClick={() => handleFileUpload(fileInput)}
+            colorScheme="blue"
             fontWeight="bold"
+            flex={{ md: "1" }}
           >
-            Take bill picture
+            Upload bill
           </Button>
-        )}
-      </Stack>
+          {isMobile && (
+            <Button
+              isLoading={isLoading}
+              leftIcon={<FiCamera />}
+              as="a"
+              flex={{ md: "1" }}
+              colorScheme="blue"
+              onClick={() => handleFileUpload(cameraInput)}
+              href="#"
+              size="lg"
+              h="16"
+              px="10"
+              fontWeight="bold"
+            >
+              Take bill picture
+            </Button>
+          )}
+        </Stack>
+      ) : (
+        <Stack
+          mt="10"
+          justify="center"
+          spacing="10"
+          maxW="md"
+          mx="auto"
+          direction="column"
+        >
+          <Center>
+            <QRCode value={getRedirectURL()}></QRCode>
+          </Center>
+          <Link href={`/orders/${orderId}`} passHref>
+            <Button as="a" colorScheme="blue">
+              View Details
+            </Button>
+          </Link>
+        </Stack>
+      )}
     </div>
   );
 }

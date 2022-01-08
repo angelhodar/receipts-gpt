@@ -1,16 +1,23 @@
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
+const get = async (req, res) => {
+  const sessions = await stripe.checkout.sessions.list();
+  res.status(200).json({ sessions });
+};
+
+
 const post = async (req, res) => {
-  const { orderId } = req.body;
+  const { orderId, amount } = req.body;
   const createdSession = await getCheckoutSession(orderId);
 
   if (createdSession) {
-    res.status(200).json({ checkout: createdSession.url });
+    res.status(200).json({ session: createdSession });
   } else {
     try {
-      const session = await createCheckoutSession(orderId);
-      res.status(200).json({ checkout: session.url });
+      const session = await createCheckoutSession(req, orderId, amount);
+      res.status(200).json(session);
     } catch (err) {
+      console.log(err);
       res.status(err.statusCode || 500).json(err.message);
     }
   }
@@ -21,11 +28,10 @@ const getCheckoutSession = async (orderId) => {
   return sessions.data.find((s) => s.metadata.orderId === orderId);
 };
 
-const createCheckoutSession = async (orderId) => {
+const createCheckoutSession = async (req, orderId, amount) => {
   const price = await stripe.prices.create({
-    unit_amount: null,
+    unit_amount: amount * 100,
     currency: "eur",
-    recurring: { interval: "day" },
     product_data: { name: `Order #${orderId}` },
     metadata: { orderId },
   });
@@ -48,7 +54,7 @@ const createCheckoutSession = async (orderId) => {
 
 export default (req, res) => {
   req.method === "GET"
-    ? console.log("GET")
+    ? get(req, res)
     : req.method === "POST"
     ? post(req, res)
     : req.method === "DELETE"

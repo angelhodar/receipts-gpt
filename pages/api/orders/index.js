@@ -21,9 +21,9 @@ const get = async (req, res) => {
 };
 
 const post = async (req, res) => {
-  //const filePath = await saveFile(req);
-  const data = fs.readFileSync("./public/example.json"); // await getOrderData(filePath);
-  const { id, line_items, total } = JSON.parse(data);
+  const filePath = await saveFile(req);
+  const data = await getOrderData(filePath); //fs.readFileSync("./public/example.json");
+  const { id, line_items, total } = data;
   const order = {
     verifyId: id,
     total,
@@ -36,7 +36,7 @@ const post = async (req, res) => {
     }),
   };
   const savedOrder = await saveOrder(order);
-  return res.status(201).send(savedOrder);
+  return res.status(201).json(savedOrder);
 };
 
 const saveOrder = async (order) => {
