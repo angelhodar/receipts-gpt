@@ -5,22 +5,20 @@ const get = async (req, res) => {
   res.status(200).json({ sessions });
 };
 
-
 const post = async (req, res) => {
   const { orderId, amount } = req.body;
-  //const createdSession = await getCheckoutSession(orderId);
+  const createdSession = await getCheckoutSession(orderId);
+
   try {
-    const session = await createCheckoutSession(req, orderId, amount);
-    res.status(200).json(session);
+    if (createdSession) res.status(200).json({ session: createdSession });
+    else {
+      const session = await createCheckoutSession(req, orderId, amount);
+      res.status(200).json(session);
+    }
   } catch (err) {
     console.log(err);
     res.status(err.statusCode || 500).json(err.message);
   }
-  /*if (createdSession) {
-    res.status(200).json({ session: createdSession });
-  } else {
-    
-  }*/
 };
 
 const getCheckoutSession = async (orderId) => {

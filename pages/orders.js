@@ -1,11 +1,13 @@
 import * as React from "react";
 import { Box, SimpleGrid, useColorModeValue } from "@chakra-ui/react";
 import OrderCard from "../components/OrderCard";
-import { PrismaClient } from "@prisma/client";
+import useSWR from "swr";
 
-const prisma = new PrismaClient();
+export default function Orders() {
+  const { data: orders, error } = useSWR("/api/orders");
 
-export default function Orders({ orders }) {
+  if (error || !orders) return null;
+
   return (
     <Box
       bg={useColorModeValue("gray.100", "gray.800")}
@@ -22,9 +24,3 @@ export default function Orders({ orders }) {
     </Box>
   );
 }
-
-export const getServerSideProps = async () => {
-  let orders = await prisma.order.findMany();
-  orders.forEach(o => o.createdAt = o.createdAt.toISOString());
-  return { props: { orders }};
-};

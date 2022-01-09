@@ -12,8 +12,9 @@ datasource db {
 
 model Order {
   id        Int         @id @default(autoincrement())
-  verifyId  Int         @unique
   createdAt DateTime    @default(now())
+  veryfi    Int         @unique
+  url       String
   total     Float
   items     OrderItem[]
 }

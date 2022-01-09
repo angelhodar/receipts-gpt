@@ -4,6 +4,7 @@ import { isMobile } from "react-device-detect";
 import QRCode from "react-qr-code";
 import Link from "next/link";
 import { FiUpload, FiCamera } from "react-icons/fi";
+import { uploadFile } from "../lib/supabase";
 
 export default function ReceiptUploader() {
   const [orderId, setOrderId] = useState(null);
@@ -20,21 +21,17 @@ export default function ReceiptUploader() {
   const handleFileUpload = (input) => input.current.click();
   const handleFileChange = (e) => upload(e.target.files[0]);
 
-  const upload = async (image) => {
+  const upload = async (file) => {
     setIsLoading(true);
-    const body = new FormData();
-    body.append("file", image);
-    try {
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        body,
-      });
-      const { id } = await response.json();
-      setOrderId(id);
-    } catch (e) {
-      console.log("Error");
-    }
+    const url = await uploadFile(file);
+    const response = await fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+    const { id } = await response.json();
     setIsLoading(false);
+    setOrderId(id);
   };
 
   return (

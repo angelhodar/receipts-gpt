@@ -41,9 +41,9 @@ export default function Order() {
       const result = await stripe.redirectToCheckout({
         sessionId: session.id,
       });
-      if (result.error) console.log(result.error.message);
+      if (result.error) throw result.error;
     } catch (e) {
-      console.log("Error");
+      console.log(e);
     }
   };
 
@@ -55,7 +55,7 @@ export default function Order() {
       <CardWithAvatar
         maxW="xl"
         avatarProps={{
-          src: order.verifyData.img_url,
+          src: order.url,
           name: "Bill",
         }}
         action={
