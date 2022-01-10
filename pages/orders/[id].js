@@ -78,7 +78,7 @@ export default function Order() {
             <Input
               _placeholder={{ color: "gray.800" }}
               placeholder="Type the amount you pay..."
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => setAmount(e.target.value * 10)}
             />
             <Button onClick={processCheckout} colorScheme="blue">
               Checkout
