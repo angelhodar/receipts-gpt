@@ -6,7 +6,7 @@ export default function OrderItem({ item }) {
     <Tr>
       <Td>{item.item}</Td>
       <Td>{item.quantity}</Td>
-      <Td isNumeric>{item.price * item.quantity}€</Td>
+      <Td isNumeric>{item.price}€</Td>
     </Tr>
   );
 }

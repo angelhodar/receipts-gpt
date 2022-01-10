@@ -1,4 +1,5 @@
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+import nc from "next-connect";
+import { getCheckoutSession, createCheckoutSession } from "../../../lib/stripe";
 
 const get = async (req, res) => {
   const sessions = await stripe.checkout.sessions.list();
@@ -12,7 +13,8 @@ const post = async (req, res) => {
   try {
     if (createdSession) res.status(200).json({ session: createdSession });
     else {
-      const session = await createCheckoutSession(req, orderId, amount);
+      const params = { origin: req.headers.origin, orderId, amount };
+      const session = await createCheckoutSession(params);
       res.status(200).json(session);
     }
   } catch (err) {
@@ -21,43 +23,14 @@ const post = async (req, res) => {
   }
 };
 
-const getCheckoutSession = async (orderId) => {
-  const sessions = await stripe.checkout.sessions.list();
-  return sessions.data.find((s) => s.metadata.orderId === orderId);
-};
+const handler = nc({
+  onError: (err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).end("Something broke!");
+  },
+  onNoMatch: (req, res, next) => {
+    res.status(404).end("Page is not found");
+  },
+}).get(get).post(post);
 
-const createCheckoutSession = async (req, orderId, amount) => {
-  const price = await stripe.prices.create({
-    unit_amount: amount * 100,
-    currency: "eur",
-    product_data: { name: `Order #${orderId}` },
-    metadata: { orderId },
-  });
-
-  const session = await stripe.checkout.sessions.create({
-    line_items: [
-      {
-        price: price.id,
-        quantity: 1,
-      },
-    ],
-    metadata: { orderId },
-    mode: "payment",
-    success_url: `${req.headers.origin}/?status=success`,
-    cancel_url: `${req.headers.origin}/?status=canceled`,
-  });
-
-  return session;
-};
-
-export default (req, res) => {
-  req.method === "GET"
-    ? get(req, res)
-    : req.method === "POST"
-    ? post(req, res)
-    : req.method === "DELETE"
-    ? console.log("DELETE")
-    : req.method === "PUT"
-    ? console.log("PUT")
-    : res.status(404).send("");
-};
+export default handler;

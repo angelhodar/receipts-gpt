@@ -1,3 +1,4 @@
+import nc from "next-connect";
 import { processBill } from "../../../lib/veryfi";
 import { PrismaClient } from "@prisma/client";
 
@@ -24,14 +25,14 @@ const createOrder = async ({ items, ...rest }) => {
   });
 };
 
-export default (req, res) => {
-  req.method === "GET"
-    ? get(req, res)
-    : req.method === "POST"
-    ? post(req, res)
-    : req.method === "DELETE"
-    ? console.log("DELETE")
-    : req.method === "PUT"
-    ? console.log("PUT")
-    : res.status(404).send("");
-};
+const handler = nc({
+  onError: (err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).end("Something broke!");
+  },
+  onNoMatch: (req, res, next) => {
+    res.status(404).end("Page is not found");
+  },
+}).get(get).post(post);
+
+export default handler;
