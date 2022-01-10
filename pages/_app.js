@@ -1,5 +1,6 @@
 import { ChakraProvider } from "@chakra-ui/react";
 import { SWRConfig } from "swr";
+import Navbar from "../components/Navbar/Navbar";   
 
 function App({ Component, pageProps }) {
   return (
@@ -9,6 +10,7 @@ function App({ Component, pageProps }) {
           fetcher: (...args) => fetch(...args).then((res) => res.json()),
         }}
       >
+        <Navbar />
         <Component {...pageProps} />
       </SWRConfig>
     </ChakraProvider>

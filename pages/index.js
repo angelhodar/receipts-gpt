@@ -1,5 +1,6 @@
 import { Box, Heading, Text, useColorModeValue } from "@chakra-ui/react";
 import ReceiptUploader from "../components/ReceiptUploader";
+import Features from "../components/Features";
 
 export default function Index(props) {
   return (
@@ -34,6 +35,7 @@ export default function Index(props) {
         </Text>
         <ReceiptUploader />
       </Box>
+      <Features />
     </Box>
   );
 }

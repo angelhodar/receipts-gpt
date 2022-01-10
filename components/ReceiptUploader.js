@@ -64,7 +64,7 @@ export default function ReceiptUploader() {
           mt="10"
           justify="center"
           spacing={{ base: "3", md: "5" }}
-          maxW="md"
+          maxW={{ base: "xs", md: "md" }}
           mx="auto"
         >
           <Button
@@ -72,7 +72,7 @@ export default function ReceiptUploader() {
             leftIcon={<FiUpload />}
             as="a"
             href="#"
-            size="lg"
+            size="md"
             h="16"
             px="10"
             onClick={() => handleFileUpload(fileInput)}
@@ -91,7 +91,7 @@ export default function ReceiptUploader() {
               colorScheme={error ? "red" : "blue"}
               onClick={() => handleFileUpload(cameraInput)}
               href="#"
-              size="lg"
+              size="md"
               h="16"
               px="10"
               fontWeight="bold"
