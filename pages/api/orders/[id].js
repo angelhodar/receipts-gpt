@@ -1,7 +1,5 @@
 import nc from "next-connect";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../../../lib/db";
 
 const get = async (req, res) => {
   const { id } = req.query;

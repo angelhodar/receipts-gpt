@@ -1,8 +1,6 @@
 import nc from "next-connect";
 import { processBill } from "../../../lib/veryfi";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../../../lib/db";
 
 const get = async (req, res) => {
   const orders = await prisma.order.findMany();
@@ -12,6 +10,7 @@ const get = async (req, res) => {
 const post = async (req, res) => {
   const { url } = req.body;
   const data = await processBill(url);
+  if (data == null) return res.status(400).json({});
   const order = await createOrder(data);
   return res.status(201).json(order);
 };

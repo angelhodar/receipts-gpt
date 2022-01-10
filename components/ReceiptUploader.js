@@ -4,11 +4,12 @@ import { isMobile } from "react-device-detect";
 import QRCode from "react-qr-code";
 import Link from "next/link";
 import { FiUpload, FiCamera } from "react-icons/fi";
-import { uploadFile } from "../lib/supabase";
+import { removeFile, uploadFile } from "../lib/supabase";
 
 export default function ReceiptUploader() {
   const [orderId, setOrderId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const fileInput = useRef(null);
   const cameraInput = useRef(null);
 
@@ -24,20 +25,27 @@ export default function ReceiptUploader() {
   const upload = async (file) => {
     setIsLoading(true);
     const url = await uploadFile(file);
-    const response = await fetch("/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url }),
-    });
-    const { id } = await response.json();
-    setIsLoading(false);
-    setOrderId(id);
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const { id } = await response.json();
+      setOrderId(id);
+    } catch (e) {
+      await removeFile(file);
+      setError(e);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div>
       <input
         ref={fileInput}
+        accept="image/*"
         onChange={handleFileChange}
         type="file"
         style={{ display: "none" }}
@@ -68,7 +76,7 @@ export default function ReceiptUploader() {
             h="16"
             px="10"
             onClick={() => handleFileUpload(fileInput)}
-            colorScheme="blue"
+            colorScheme={error ? "red" : "blue"}
             fontWeight="bold"
             flex={{ md: "1" }}
           >
@@ -80,7 +88,7 @@ export default function ReceiptUploader() {
               leftIcon={<FiCamera />}
               as="a"
               flex={{ md: "1" }}
-              colorScheme="blue"
+              colorScheme={error ? "red" : "blue"}
               onClick={() => handleFileUpload(cameraInput)}
               href="#"
               size="lg"
