@@ -7,6 +7,7 @@ import {
   Block,
   DetectDocumentTextCommandOutput,
   BlockType,
+  ExpenseType
 } from "@aws-sdk/client-textract";
 import { parseReceiptRawText } from "./openai";
 

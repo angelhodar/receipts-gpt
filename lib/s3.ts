@@ -46,7 +46,7 @@ export async function findImageKey(prefix: string) {
 export async function getReceiptMetadata(key: string) {
   const command = new GetObjectCommand({
     Bucket: process.env.AWS_S3_BUCKET_NAME,
-    Key: key + ".json",
+    Key: key,
   });
 
   try {
@@ -68,7 +68,7 @@ export async function getReceiptMetadata(key: string) {
 export async function uploadReceiptMetadata(key: string, body: any) {
   const command = new PutObjectCommand({
     Bucket: process.env.AWS_S3_BUCKET_NAME,
-    Key: key + ".json",
+    Key: key,
     Body: JSON.stringify(body),
   });
 

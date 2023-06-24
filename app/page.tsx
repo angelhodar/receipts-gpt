@@ -3,7 +3,7 @@ import UploadReceipt from "@/components/UploadReceipt";
 
 export default function Home() {
   return (
-    <main className="flex max-w-6xl mx-auto items-center text-center flex-col py-2 min-h-screen mt-28">
+    <main className="flex max-w-6xl mx-auto items-center text-center flex-col py-2 mt-28">
       <h1 className="max-w-4xl font-display text-5xl font-bold tracking-normal text-slate-900 sm:text-7xl">
         Share your receipt and take your part of the bill
       </h1>

@@ -1,27 +1,19 @@
-import { Configuration, OpenAIApi } from "openai-edge";
+import { Configuration, OpenAIApi } from "openai";
 
 const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: "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",
 });
 
 const openai = new OpenAIApi(configuration);
 
 const createPrompt = (text: string) => `
-I am going to give you the AWS Textract raw document text response for a receipt.
-I want you to parse the text and give me the list of items that have been ordered in the receipt with the following output JSON format:
-
-[
-    {
-        quantity: number
-        unit_price: number
-        item: string
-        price: string
-    }
-]
-
-ONLY return the output JSON format, nothing else. Here you have the raw receipt text:
+Here is a parsed text from a restaurant receipt line by line:
 
 ${text}
+
+I want you to give me the list of items that have been ordered in the receipt with the following output JSON format for each item:
+
+[{ quantity: number, unit_price: number, item: string, price: string }]
 
 The JSON object is:
 `;
@@ -29,21 +21,18 @@ The JSON object is:
 export async function parseReceiptRawText(text: string) {
   try {
     const completion = await openai.createCompletion({
-      model: "gpt-3.5-turbo",
+      model: "text-davinci-003",
       prompt: createPrompt(text),
       temperature: 0,
       max_tokens: 1000,
     });
 
-    return new Response(completion.body);
+    return completion.data.choices[0].text;
   } catch (error: any) {
     console.error(error);
-
-    return new Response(JSON.stringify(error), {
-      status: 500,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    console.log(error.response.data)
+    return null;
   }
+
+  
 }
