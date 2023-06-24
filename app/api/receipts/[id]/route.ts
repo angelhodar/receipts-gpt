@@ -22,12 +22,12 @@ export async function GET(
 
   const { metadata, parsed } = await analyzeReceiptWithGPT(key);
 
-  if (!metadata) throw new Error("Error while detecting receipt data");
+  if (!metadata || !parsed) throw new Error("Error while detecting receipt data");
 
   await Promise.all([
     uploadReceiptMetadata(id + ".metadata.json", metadata),
     uploadReceiptMetadata(id + ".json", parsed),
   ]);
 
-  return parsed;
+  return NextResponse.json(parsed);
 }
