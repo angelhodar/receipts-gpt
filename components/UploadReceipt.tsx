@@ -3,15 +3,24 @@
 import { useState } from "react";
 import Link from "next/link";
 import QRCode from "react-qr-code";
-import { Share2, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import {
+  UploadCloud,
+  Camera,
+  Share2,
+  ExternalLink,
+  Loader2,
+} from "lucide-react";
 
 const UploadReceiptInput = ({
   onReceiptUpload,
 }: {
   onReceiptUpload: (id: string) => void;
 }) => {
+  const [uploading, setUploading] = useState(false);
+
   const uploadReceipt = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]!;
 
@@ -33,25 +42,70 @@ const UploadReceiptInput = ({
     const abortController = new AbortController();
     const { signal } = abortController;
 
-    const upload = await fetch(uploadUrl, {
-      method: "POST",
-      body: formData,
-      signal,
-    });
+    setUploading(true);
 
-    if (upload.ok) {
-      console.log("Uploaded successfully!");
-      const id = fields.key.split(".")[0];
-      const url = new URL(id, window.location.origin).href;
-      onReceiptUpload(url);
-    } else {
-      console.error("Upload failed.");
+    try {
+      const upload = await fetch(uploadUrl, {
+        method: "POST",
+        body: formData,
+        signal,
+      });
+      if (upload.ok) {
+        console.log("Uploaded successfully!");
+        const id = fields.key.split(".")[0];
+        const url = new URL(id, window.location.origin).href;
+        onReceiptUpload(url);
+      } else {
+        console.error("Upload failed.");
+      }
+    } catch (err) {
+      console.log(err);
     }
+
+    setUploading(false);
   };
 
+  if (uploading)
+    return (
+      <div className="flex flex-col space-y-4 jutify-center items-center border border-gray-300 rounded-lg px-5 py-3">
+        <p className="font-semibold text-md">Uploading your receipt...</p>
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+
   return (
-    <div className="flex flex-col justify-center space-y-2">
-      <Input onChange={uploadReceipt} type="file" accept="image/*" />
+    <div className="flex flex-col space-y-4">
+      <div className="flex flex-col md:flex-row justify-center space-y-6 md:space-x-6 md:space-y-0">
+        <Label className="hover:cursor-pointer">
+          <Button variant="outline" asChild>
+            <div className="space-x-2">
+              <UploadCloud className="w-6 h-6" />
+              <p className="text-lg">Upload from gallery</p>
+            </div>
+          </Button>
+          <Input
+            onChange={uploadReceipt}
+            type="file"
+            accept="image/*"
+            className="hidden"
+          />
+        </Label>
+        <Label className="hover:cursor-pointer">
+          <Button variant="outline" className="p-3" asChild>
+            <div className="space-x-2">
+              <Camera className="w-6 h-6" />
+              <p className="text-lg">Take a picture</p>
+            </div>
+          </Button>
+          <Input
+            onChange={uploadReceipt}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+          />
+        </Label>
+      </div>
       <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
         PNG, JPG or GIF (max 10MB)
       </p>
@@ -63,7 +117,7 @@ const UploadReceiptResult = ({ url }: { url: string }) => {
   return (
     <div className="flex flex-col space-y-5 justify-center">
       <h3 className="font-bold font-heading text-xl sm:text-2xl md:text-3xl">
-        Your receipt is being processed...
+        Your receipt is getting processed
       </h3>
       <div className="flex flex-col space-y-5 md:flex-row md:space-x-10 md:space-y-0 items-center md:items-start">
         <div className="flex flex-col space-y-2 items-center justify-center">
@@ -88,7 +142,7 @@ const UploadReceiptResult = ({ url }: { url: string }) => {
 };
 
 export default function UploadReceipt() {
-  const [uploadedReceipt, setUploadedReceipt] = useState("hola");
+  const [uploadedReceipt, setUploadedReceipt] = useState("");
 
   if (uploadedReceipt) return <UploadReceiptResult url={uploadedReceipt} />;
 
