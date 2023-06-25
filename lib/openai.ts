@@ -13,7 +13,7 @@ ${text}
 
 I want you to give me the list of items that have been ordered in the receipt with the following output JSON format for each item:
 
-[{ "quantity": number, "unit_price": number, "item": string, "price": number }]
+[{ "quantity": number, "unit_price": number, "name": string, "price": number }]
 
 Note: If you cant parse price or unit_price as number, leave it as 0
 

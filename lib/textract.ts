@@ -6,20 +6,12 @@ import {
   ExpenseField,
   Block,
   DetectDocumentTextCommandOutput,
-  BlockType,
-  ExpenseType
+  BlockType
 } from "@aws-sdk/client-textract";
 import { parseReceiptRawText } from "./openai";
+import { ReceiptItem } from "../types.d"
 
 const textractClient = new TextractClient({});
-
-interface ReceiptItem {
-  quantity: number;
-  unitPrice: number;
-  price: number;
-  item: string;
-  raw?: string;
-}
 
 const parseExpenseResponse = (
   res: AnalyzeExpenseCommandOutput
@@ -44,9 +36,9 @@ const parseExpenseResponse = (
       if (elem.Type?.Text === "PRICE")
         itemData.price = Number(elem.ValueDetection?.Text) || 0;
       if (elem.Type?.Text === "UNIT_PRICE")
-        itemData.unitPrice = Number(elem.ValueDetection?.Text) || 0;
+        itemData.unit_price = Number(elem.ValueDetection?.Text) || 0;
       if (elem.Type?.Text === "ITEM")
-        itemData.item = elem.ValueDetection?.Text as string;
+        itemData.name = elem.ValueDetection?.Text as string;
       if (elem.Type?.Text === "EXPENSE_ROW")
         itemData.raw = elem.ValueDetection?.Text as string;
     }
