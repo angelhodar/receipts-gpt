@@ -1,5 +1,3 @@
-import path from "path";
-import { v4 as uuidv4 } from "uuid";
 import {
   S3Client,
   GetObjectCommand,
@@ -8,19 +6,17 @@ import {
 } from "@aws-sdk/client-s3";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 
-const s3Client = new S3Client({});
+const s3Client = new S3Client({
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
+  },
+  region: "eu-west-3",
+});
+
 const maxUploadFileSize = 10485760; // 10 MB
 const expirationTime = 600; // seconds
-const imageExtensions = [".jpg", ".jpeg", ".png"];
-
-const parseBodyAsJSON = async (body: any) => {
-  return await new Promise((resolve, reject) => {
-    let data = "";
-    body.on("data", (chunk: string) => (data += chunk));
-    body.on("end", () => resolve(JSON.parse(data)));
-    body.on("error", reject);
-  });
-};
+const imageExtensions = ["jpg", "jpeg", "png"];
 
 export async function findImageKey(prefix: string) {
   // List objects in the bucket with the given prefix
@@ -33,7 +29,8 @@ export async function findImageKey(prefix: string) {
 
   // Find the first key that has an image extension
   for (const obj of listObjectsResponse.Contents || []) {
-    const extension = obj?.Key?.slice(Math.max(0, obj.Key.lastIndexOf(".")));
+    console.log(obj.Key)
+    const extension = obj?.Key?.split(".").at(-1);
     if (!extension) continue;
     if (imageExtensions.includes(extension.toLowerCase())) {
       return obj.Key;
@@ -51,8 +48,8 @@ export async function getReceiptMetadata(key: string) {
 
   try {
     const res = await s3Client.send(command);
-    const metadata = parseBodyAsJSON(res.Body);
-    return metadata;
+    const metadata = await res.Body?.transformToString()
+    return JSON.parse(metadata as string);
   } catch (e) {
     const error = e as Error;
     if (error.name === "NoSuchKey") {
@@ -88,8 +85,8 @@ export async function uploadReceiptMetadata(key: string, body: any) {
 }
 
 export async function generatePresignedURL(file: string, type: string) {
-  const ext = path.extname(file);
-  const newFileName = `${uuidv4()}${ext}`;
+  const ext = file.split(".").at(-1);
+  const newFileName = `${crypto.randomUUID()}.${ext}`;
 
   const presignedData = await createPresignedPost(s3Client, {
     Bucket: process.env.AWS_S3_BUCKET_NAME as string,

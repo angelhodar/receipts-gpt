@@ -7,7 +7,7 @@ export default function Home() {
       <section className="space-y-6 pb-8 pt-6 md:pb-12 md:pt-10 lg:py-24">
         <div className="flex flex-col items-center gap-4 text-center">
           <h1 className="font-bold font-heading text-3xl sm:text-5xl md:text-6xl lg:text-7xl">
-            Easily take your part of your receipt
+            Easily take your part of the meal
           </h1>
           <p className="mt-4 max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
             Simply take a photo of the receipt, upload it and you will just need

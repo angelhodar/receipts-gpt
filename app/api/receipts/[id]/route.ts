@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import {
-  findImageKey,
-  getReceiptMetadata,
-  uploadReceiptMetadata,
-} from "@/lib/s3";
-import { analyzeReceiptWithGPT } from "@/lib/textract";
+import { findImageKey, getReceiptMetadata } from "@/lib/s3";
+import { getReceiptStatus, changeReceiptStatus } from "@/lib/redis";
+import { ReceiptStatus } from "@/types";
+
+export const runtime = "edge";
 
 export async function GET(
   request: Request,
@@ -12,22 +11,31 @@ export async function GET(
 ) {
   const id = params.id;
 
-  const receiptMetadata = await getReceiptMetadata(id + ".json");
+  const status = await getReceiptStatus(id);
 
-  if (receiptMetadata) return NextResponse.json(receiptMetadata);
+  if (status == ReceiptStatus.PROCESSED) {
+    const receiptMetadata = await getReceiptMetadata(id + ".json");
+    if (receiptMetadata) return NextResponse.json(receiptMetadata);
+    return NextResponse.json({ message: "Error retrieving metadata" });
+  }
+
+  if (status == ReceiptStatus.QUEUED || ReceiptStatus.SCANNED) {
+    return NextResponse.json({ status });
+  }
+
+  await changeReceiptStatus(id, ReceiptStatus.QUEUED);
 
   const key = await findImageKey(id);
 
   if (!key) throw new Error("Trying to get receipt that doesnt exist");
 
-  const { metadata, parsed } = await analyzeReceiptWithGPT(key);
+  const { origin } = new URL(request.url);
 
-  if (!metadata || !parsed) throw new Error("Error while detecting receipt data");
+  fetch(`${origin}/api/receipts/${id}/ocr`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ file: key }),
+  });
 
-  await Promise.all([
-    uploadReceiptMetadata(id + ".metadata.json", metadata),
-    uploadReceiptMetadata(id + ".json", parsed),
-  ]);
-
-  return NextResponse.json(parsed);
+  return NextResponse.json({ status: ReceiptStatus.QUEUED });
 }

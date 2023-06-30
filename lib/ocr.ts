@@ -6,10 +6,9 @@ import {
   ExpenseField,
   Block,
   DetectDocumentTextCommandOutput,
-  BlockType
+  BlockType,
 } from "@aws-sdk/client-textract";
-import { parseReceiptRawText } from "./openai";
-import { ReceiptItem } from "../types.d"
+import { ReceiptItem } from "../types";
 
 const textractClient = new TextractClient({});
 
@@ -75,7 +74,7 @@ export async function analyzeReceiptWithExpenseAPI(key: string) {
   return { metadata: res, parsed };
 }
 
-export async function analyzeReceiptWithGPT(key: string) {
+export async function analyzeReceiptWithDocumentAPI(key: string) {
   const command = new DetectDocumentTextCommand({
     Document: {
       S3Object: {
@@ -85,9 +84,8 @@ export async function analyzeReceiptWithGPT(key: string) {
     },
   });
 
-  const res = await textractClient.send(command);
-  const text = extractRawTextFromBlocks(res);
-  const parsed = await parseReceiptRawText(text);
+  const metadata = await textractClient.send(command);
+  const rawText = extractRawTextFromBlocks(metadata);
 
-  return { metadata: res, parsed };
+  return { metadata, rawText };
 }

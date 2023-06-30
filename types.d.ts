@@ -5,3 +5,9 @@ export interface ReceiptItem {
   name: string;
   raw?: string;
 }
+
+export enum ReceiptStatus {
+  QUEUED = "queued",
+  SCANNED = "scanned",
+  PROCESSED = "processed"
+}

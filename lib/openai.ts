@@ -1,4 +1,4 @@
-import { Configuration, OpenAIApi } from "openai";
+import { Configuration, OpenAIApi } from "openai-edge";
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -22,17 +22,56 @@ The JSON object is:
 
 export async function parseReceiptRawText(text: string) {
   try {
-    const completion = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt: createPrompt(text),
+    const response = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: createPrompt(text) }],
+      functions: [
+        {
+          name: "print",
+          description: "Prints the parsed receipt",
+          parameters: {
+            type: "object",
+            required: ["items"],
+            properties: {
+              items: {
+                type: "array",
+                description: "The array of parsed items",
+                items: {
+                  type: "object",
+                  required: ["quantity", "unit_price", "name", "price"],
+                  properties: {
+                    quantity: {
+                      type: "number",
+                      description: "The quantity of an item",
+                    },
+                    unit_price: {
+                      type: "number",
+                      description: "The unit price of the item",
+                    },
+                    name: {
+                      type: "string",
+                      description: "The name of the item",
+                    },
+                    price: {
+                      type: "number",
+                      description: "The total price of the item row",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ],
       temperature: 0,
-      max_tokens: 1000,
+      max_tokens: 500,
     });
 
-    return JSON.parse(completion.data.choices[0].text as string);
+    const json = await response.json();
+    const { items } = JSON.parse(json.choices[0].message.function_call.arguments);
+    return items
   } catch (error: any) {
     console.error(error);
-    console.log(error.response.data)
     return null;
-  }  
+  }
 }

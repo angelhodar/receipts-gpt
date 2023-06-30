@@ -53,7 +53,7 @@ const UploadReceiptInput = ({
       if (upload.ok) {
         console.log("Uploaded successfully!");
         const id = fields.key.split(".")[0];
-        const url = new URL(id, window.location.origin).href;
+        const url = new URL(id, window.location.origin + "/receipts").href;
         onReceiptUpload(url);
       } else {
         console.error("Upload failed.");
@@ -117,7 +117,7 @@ const UploadReceiptResult = ({ url }: { url: string }) => {
   return (
     <div className="flex flex-col space-y-5 justify-center">
       <h3 className="font-bold font-heading text-xl sm:text-2xl md:text-3xl">
-        Your receipt is getting processed
+        See your receipt in the url below
       </h3>
       <div className="flex flex-col space-y-5 md:flex-row md:space-x-10 md:space-y-0 items-center md:items-start">
         <div className="flex flex-col space-y-2 items-center justify-center">
