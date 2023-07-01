@@ -48,7 +48,7 @@ const parseExpenseResponse = (
   return parsed;
 };
 
-const extractRawTextFromBlocks = (
+export const extractRawTextFromBlocks = (
   res: DetectDocumentTextCommandOutput
 ): string => {
   const lineBlocks = res.Blocks?.filter((b) => b.BlockType === BlockType.LINE);

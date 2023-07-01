@@ -11,3 +11,8 @@ export enum ReceiptStatus {
   SCANNED = "scanned",
   PROCESSED = "processed"
 }
+
+export interface ReceiptResponse {
+  status: ReceiptStatus
+  items: ReceiptItem[]
+}

@@ -64,7 +64,7 @@ export async function parseReceiptRawText(text: string) {
         },
       ],
       temperature: 0,
-      max_tokens: 500,
+      max_tokens: 2000,
     });
 
     const json = await response.json();
