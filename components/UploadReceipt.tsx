@@ -53,7 +53,7 @@ const UploadReceiptInput = ({
       if (upload.ok) {
         console.log("Uploaded successfully!");
         const id = fields.key.split(".")[0];
-        const url = new URL(id, window.location.origin + "/receipts").href;
+        const url = new URL(id, window.location.origin + "/receipts/").href;
         onReceiptUpload(url);
       } else {
         console.error("Upload failed.");

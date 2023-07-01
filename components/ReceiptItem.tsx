@@ -6,7 +6,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ReceiptItem } from "@/types";
+import { ReceiptItem } from "../types";
 
 export default function ReceiptItem({ item }: { item: ReceiptItem }) {
   return (

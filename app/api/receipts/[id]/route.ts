@@ -15,17 +15,25 @@ export async function GET(
 
   if (status == ReceiptStatus.PROCESSED) {
     const receiptMetadata = await getReceiptMetadata(id + ".json");
-    if (receiptMetadata) return NextResponse.json(receiptMetadata);
-    return NextResponse.json({ message: "Error retrieving metadata" });
+    if (!receiptMetadata)
+      return NextResponse.json({ message: "Error retrieving metadata" });
+    return NextResponse.json({
+      status: ReceiptStatus.PROCESSED,
+      items: receiptMetadata,
+    });
   }
 
-  if (status == ReceiptStatus.QUEUED || ReceiptStatus.SCANNED) {
+  console.log("Checking status...");
+
+  if (status == ReceiptStatus.QUEUED || status == ReceiptStatus.SCANNED) {
     return NextResponse.json({ status });
   }
 
   await changeReceiptStatus(id, ReceiptStatus.QUEUED);
 
   const key = await findImageKey(id);
+
+  console.log("Found key: " + key);
 
   if (!key) throw new Error("Trying to get receipt that doesnt exist");
 

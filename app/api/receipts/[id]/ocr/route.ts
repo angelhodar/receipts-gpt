@@ -10,9 +10,11 @@ export async function POST(
 ) {
   const id = params.id
   const { file } = await request.json();
+  console.log("Called ocr for file: " + file);
   const { metadata, rawText } = await analyzeReceiptWithDocumentAPI(file);
 
   await uploadReceiptMetadata(id + ".metadata.json", metadata);
+  console.log("Uploaded metadata for ocr: " + file);
   await changeReceiptStatus(id, ReceiptStatus.SCANNED);
 
   const { origin } = new URL(request.url);

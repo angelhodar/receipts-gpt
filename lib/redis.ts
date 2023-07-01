@@ -1,5 +1,5 @@
 import { Redis } from "@upstash/redis";
-import { ReceiptStatus } from "@/types";
+import { ReceiptStatus } from "../types";
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL as string,
@@ -14,5 +14,6 @@ export const changeReceiptStatus = async (
   id: string,
   newStatus: ReceiptStatus
 ) => {
+  console.log(`Marking status as ${newStatus}`);
   return await redis.set(id, newStatus);
 };
