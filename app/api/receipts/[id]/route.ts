@@ -45,5 +45,9 @@ export async function GET(
     body: JSON.stringify({ file: key }),
   });
 
+  console.log("Fetch " + `${origin}/api/receipts/${id}/ocr`)
+
+  await new Promise(resolve => setTimeout(resolve, 1000))
+
   return NextResponse.json({ status: ReceiptStatus.QUEUED });
 }
