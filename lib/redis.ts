@@ -1,13 +1,8 @@
-import { Redis } from "@upstash/redis";
+import { kv } from '@vercel/kv';
 import { ReceiptStatus } from "../types";
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL as string,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN as string,
-});
-
 export const getReceiptStatus = async (id: string) => {
-  return await redis.get<ReceiptStatus>(id);
+  return await kv.get<ReceiptStatus>(id);
 };
 
 export const changeReceiptStatus = async (
@@ -15,5 +10,5 @@ export const changeReceiptStatus = async (
   newStatus: ReceiptStatus
 ) => {
   console.log(`Marking status as ${newStatus}`);
-  return await redis.set(id, newStatus);
+  return await kv.set(id, newStatus);
 };
