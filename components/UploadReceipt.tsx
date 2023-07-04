@@ -20,6 +20,7 @@ const UploadReceiptInput = ({
   onReceiptUpload: (id: string) => void;
 }) => {
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState(false);
 
   const uploadReceipt = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]!;
@@ -28,6 +29,8 @@ const UploadReceiptInput = ({
 
     url.searchParams.append("file", file.name);
     url.searchParams.append("fileType", file.type);
+
+    setUploading(true);
 
     const res = await fetch(url.href);
 
@@ -42,8 +45,6 @@ const UploadReceiptInput = ({
     const abortController = new AbortController();
     const { signal } = abortController;
 
-    setUploading(true);
-
     try {
       const upload = await fetch(uploadUrl, {
         method: "POST",
@@ -57,6 +58,7 @@ const UploadReceiptInput = ({
         onReceiptUpload(url);
       } else {
         console.error("Upload failed.");
+        setError(true);
       }
     } catch (err) {
       console.log(err);
@@ -64,6 +66,16 @@ const UploadReceiptInput = ({
 
     setUploading(false);
   };
+
+  if (error)
+    return (
+      <div className="flex flex-col space-y-4 jutify-center items-center border border-gray-300 rounded-lg px-5 py-3">
+        <p className="font-semibold text-md text-red-500">
+          Error uploading your receipt
+        </p>
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
 
   if (uploading)
     return (

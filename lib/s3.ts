@@ -29,7 +29,6 @@ export async function findImageKey(prefix: string) {
 
   // Find the first key that has an image extension
   for (const obj of listObjectsResponse.Contents || []) {
-    console.log(obj.Key)
     const extension = obj?.Key?.split(".").at(-1);
     if (!extension) continue;
     if (imageExtensions.includes(extension.toLowerCase())) {
@@ -48,7 +47,8 @@ export async function getReceiptMetadata(key: string) {
 
   try {
     const res = await s3Client.send(command);
-    const metadata = await res.Body?.transformToString()
+    const metadata = await res.Body?.transformToString();
+    console.log("Fetched receipt metadata for file: " + key);
     return JSON.parse(metadata as string);
   } catch (e) {
     const error = e as Error;
@@ -71,6 +71,7 @@ export async function uploadReceiptMetadata(key: string, body: any) {
 
   try {
     await s3Client.send(command);
+    console.log("Uploaded metadata for file: " + key);
     return true;
   } catch (e) {
     const error = e as Error;
@@ -95,6 +96,8 @@ export async function generatePresignedURL(file: string, type: string) {
     Expires: expirationTime,
     Conditions: [["content-length-range", 0, maxUploadFileSize]],
   });
+
+  console.log("Generated presgiend url for file: " + newFileName);
 
   return presignedData;
 }
