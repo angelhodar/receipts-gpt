@@ -9,6 +9,8 @@ export const runtime = "edge";
 export const POST = validate(
   async (request: Request, { params }: { params: { id: string } }) => {
     const id = params.id;
+
+    console.log("Scanning receipt with GPT...")
     
     const { text } = await request.json();
     const items = await parseReceiptRawText(text);

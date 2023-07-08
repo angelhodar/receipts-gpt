@@ -23,7 +23,7 @@ export const validate = (handler: any) => {
   });
 
   return async (request: Request, ...params: any) => {
-    const clonedRequest = request.clone()
+    const clonedRequest = request.clone();
 
     const isValid = await qstashReceiver.verify({
       signature: clonedRequest.headers.get("upstash-signature")!,
@@ -42,11 +42,13 @@ export const validate = (handler: any) => {
 };
 
 export const notify = async ({ endpoint, message }: NotificationProps) => {
-  const baseUrl = `${process.env.VERCEL_URL ? "https://" : ""}${
-    process.env.VERCEL_URL
-  }/api`;
+  const baseUrl = `https://${
+    process.env.VERCEL_URL || process.env.API_URL
+  }/api/`;
 
   const absoluteUrl = new URL(endpoint, baseUrl);
+
+  console.log("Sending message to " + absoluteUrl.href);
 
   await qstashClient.publish({
     url: absoluteUrl.href,
