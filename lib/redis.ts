@@ -48,7 +48,11 @@ export const notify = async ({ endpoint, message }: NotificationProps) => {
 
   const absoluteUrl = new URL(endpoint, baseUrl);
 
-  console.log("Sending message to " + absoluteUrl.href);
+  console.log("Sending message to queue");
+  console.log({
+    url: absoluteUrl.href,
+    body: JSON.stringify(message),
+  });
 
   await qstashClient.publish({
     url: absoluteUrl.href,

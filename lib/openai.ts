@@ -68,8 +68,11 @@ export async function parseReceiptRawText(text: string) {
     });
 
     const json = await response.json();
-    const { items } = JSON.parse(json.choices[0].message.function_call.arguments);
-    return items
+    console.log("OpenAI response: ", JSON.stringify(json));
+    const { items } = JSON.parse(
+      json.choices[0].message.function_call.arguments
+    );
+    return items;
   } catch (error: any) {
     console.error(error);
     return null;
