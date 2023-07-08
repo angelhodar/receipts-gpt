@@ -11,6 +11,9 @@ export const POST = validate(
     const id = params.id;
 
     console.log("Scanning receipt with GPT...")
+    console.log(request.bodyUsed)
+    console.log(request.body)
+    console.log(request)
     
     const { text } = await request.json();
     const items = await parseReceiptRawText(text);
