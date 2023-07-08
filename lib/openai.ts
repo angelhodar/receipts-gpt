@@ -1,4 +1,4 @@
-import { Configuration, OpenAIApi } from "openai-edge";
+import { Configuration, OpenAIApi } from "openai";
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -67,10 +67,9 @@ export async function parseReceiptRawText(text: string) {
       max_tokens: 2000,
     });
 
-    const json = await response.json();
-    console.log("OpenAI response: ", JSON.stringify(json));
+    const { data } = response;
     const { items } = JSON.parse(
-      json.choices[0].message.function_call.arguments
+      data.choices[0].message?.function_call?.arguments as string
     );
     return items;
   } catch (error: any) {

@@ -9,10 +9,7 @@ export const POST = validate(
     const id = params.id;
 
     console.log("Scanning receipt with OCR...")
-    console.log(request.bodyUsed)
-    console.log(request.body)
-    console.log(request)
-    
+
     const { file } = await request.json();
     const { metadata, rawText } = await analyzeReceiptWithDocumentAPI(file);
 
