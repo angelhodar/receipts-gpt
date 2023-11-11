@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import ReceiptItem from "@/components/ReceiptItem";
 import { Badge } from "@/components/ui/badge";
-import { ReceiptResponse } from "@/types";
+import { Receipt } from "@/types";
 
 const getReceipt = async (id: string) => {
   const res = await fetch(`/api/receipts/${id}`);
@@ -11,11 +11,11 @@ const getReceipt = async (id: string) => {
 };
 
 export default function Receipt({ params }: { params: { id: string } }) {
-  const { data } = useQuery<ReceiptResponse>({
+  const { data } = useQuery<Receipt>({
     queryKey: ["receipt", params.id],
     queryFn: () => getReceipt(params.id),
-    retry: 5,
-    retryDelay: 8,
+    retry: 1,
+    retryDelay: 10,
   });
 
   console.log(data)
@@ -27,10 +27,9 @@ export default function Receipt({ params }: { params: { id: string } }) {
         Status: <Badge>{data?.status}</Badge>
       </span>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-        {data?.items &&
-          data?.items
-            .filter((item) => item.price > 0)
-            .map((item, i) => <ReceiptItem key={i} item={item}></ReceiptItem>)}
+        {data?.data?.items && data?.data?.items
+          .filter((item) => item.price > 0)
+          .map((item, i) => <ReceiptItem key={i} item={item}></ReceiptItem>)}
       </div>
     </div>
   );

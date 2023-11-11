@@ -13,6 +13,7 @@ import {
   ExternalLink,
   Loader2,
 } from "lucide-react";
+import { getReceiptIDFromURL } from "@/lib/utils";
 
 const UploadReceiptInput = ({
   onReceiptUpload,
@@ -34,26 +35,25 @@ const UploadReceiptInput = ({
 
     const res = await fetch(url.href);
 
-    const { url: uploadUrl, fields } = await res.json();
+    const { url: uploadUrl } = await res.json();
 
     const formData = new FormData();
 
-    Object.entries({ ...fields, file }).forEach(([key, value]) => {
-      formData.append(key, value as string);
-    });
+    formData.append("file", file)
 
     const abortController = new AbortController();
     const { signal } = abortController;
 
     try {
       const upload = await fetch(uploadUrl, {
-        method: "POST",
+        method: "PUT",
         body: formData,
         signal,
       });
+      
       if (upload.ok) {
         console.log("Uploaded successfully!");
-        const id = fields.key.split(".")[0];
+        const id = getReceiptIDFromURL(uploadUrl)
         const url = new URL(id, window.location.origin + "/receipts/").href;
         onReceiptUpload(url);
       } else {

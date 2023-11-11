@@ -1,13 +1,28 @@
 import { NextResponse } from "next/server";
-import { generatePresignedURL } from "@/lib/s3"
+import { z } from "zod"
+import { generatePresignedURL } from "@/lib/storage"
+
+const queryParamsSchema = z.object({
+  file: z.string().min(1, "Parameter is required")
+});
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
-  const file = searchParams.get("file") as string;
-  const type = searchParams.get("fileType") as string;
+  const parseResult = queryParamsSchema.safeParse({
+    file: searchParams.get("file")
+  });
 
-  const presignedData = await generatePresignedURL(file, type)
+  if (!parseResult.success) {
+    return new NextResponse(JSON.stringify({ error: "Invalid query parameters" }), {
+      status: 400,
+      headers: {
+        "Content-Type": "application/json"
+      },
+    });
+  }
 
-  return NextResponse.json(presignedData);
+  const url = await generatePresignedURL(parseResult.data.file);
+
+  return NextResponse.json({ url });
 }

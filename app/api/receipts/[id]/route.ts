@@ -1,43 +1,27 @@
 import { NextResponse } from "next/server";
-import { findImageKey, getReceiptMetadata } from "@/lib/s3";
-import { getReceiptStatus, changeReceiptStatus, notify } from "@/lib/redis";
-import { ReceiptStatus } from "@/types";
+import { getOrigin } from "@/lib/utils";
+import { getReceiptStorageKey } from "@/lib/storage";
+import { getReceiptData, setReceiptData, enqueueReceipt } from "@/lib/redis";
+import { ReceiptStatus, Receipt } from "@/types";
 
-export const runtime = "edge";
-
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
   const id = params.id;
 
-  console.log("Retrieving receipt status for " + id);
+  const receipt = await getReceiptData(id);
 
-  const status = await getReceiptStatus(id);
+  if (receipt) return NextResponse.json(receipt);
 
-  if (status == ReceiptStatus.PROCESSED) {
-    const receiptMetadata = await getReceiptMetadata(id + ".json");
-    if (!receiptMetadata)
-      return NextResponse.json({ message: "Error retrieving metadata" });
-    return NextResponse.json({
-      status: ReceiptStatus.PROCESSED,
-      items: receiptMetadata,
-    });
-  }
+  const receiptKey = await getReceiptStorageKey(id);
 
-  if (status == ReceiptStatus.QUEUED || status == ReceiptStatus.SCANNED) {
-    return NextResponse.json({ status });
-  }
+  if (!receiptKey) throw new Error("No receipt found with the provided id")
 
-  await changeReceiptStatus(id, ReceiptStatus.QUEUED);
+  const receiptData: Receipt = { status: ReceiptStatus.QUEUED, key: receiptKey }
 
-  const key = await findImageKey(id);
+  await setReceiptData(id, receiptData);
 
-  console.log("Found key for receipt " + id);
+  const endpoint = `${getOrigin(req)}/receipts/${id}/parse`
 
-  if (!key) throw new Error("Trying to get receipt that doesnt exist");
+  await enqueueReceipt({ endpoint, message: { receiptUrl: receiptKey } });
 
-  await notify({ endpoint: `receipts/${id}/ocr`, message: { file: key } });
-
-  return NextResponse.json({ status: ReceiptStatus.QUEUED });
+  return NextResponse.json(receiptData);
 }

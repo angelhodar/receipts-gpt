@@ -1,10 +1,11 @@
 import { Redis } from "@upstash/redis";
-import { Client, Receiver } from "@upstash/qstash/cloudflare";
-import { ReceiptStatus } from "../types";
+import { Client } from "@upstash/qstash";
+import { verifySignatureEdge } from "@upstash/qstash/dist/nextjs";
+import { Receipt } from "../types";
 
 interface NotificationProps {
   endpoint: string;
-  message: any;
+  message: object;
 }
 
 const qstashClient = new Client({
@@ -16,59 +17,23 @@ const redisClient = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
 
-export const validate = (handler: any) => {
-  const qstashReceiver = new Receiver({
-    currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY!,
-    nextSigningKey: process.env.QSTASH_NEXT_SIGNING_KEY!,
-  });
-
-  return async (request: Request, ...params: any) => {
-    const clonedRequest = request.clone();
-
-    const isValid = await qstashReceiver.verify({
-      signature: clonedRequest.headers.get("upstash-signature")!,
-      body: await clonedRequest.text(),
-    });
-
-    if (!isValid) {
-      return new Response("Unauthorized", {
-        status: 401,
-        statusText: "Unauthorized",
-      });
-    }
-
-    return await handler(request, ...params);
-  };
-};
-
-export const notify = async ({ endpoint, message }: NotificationProps) => {
-  const baseUrl = `https://${
-    process.env.VERCEL_URL || process.env.API_URL
-  }/api/`;
-
-  const absoluteUrl = new URL(endpoint, baseUrl);
-
-  console.log("Sending message to queue");
-  console.log({
-    url: absoluteUrl.href,
-    body: JSON.stringify(message),
-  });
-
+export const enqueueReceipt = async ({ endpoint, message }: NotificationProps) => {
   await qstashClient.publish({
-    url: absoluteUrl.href,
+    url: endpoint,
     body: JSON.stringify(message),
     headers: { content: "application/json" },
   });
 };
 
-export const getReceiptStatus = async (id: string) => {
-  return await redisClient.get<ReceiptStatus>(id);
+export const getReceiptData = async (id: string): Promise<Receipt | null> => {
+  return await redisClient.get<Receipt>(id);
 };
 
-export const changeReceiptStatus = async (
+export const setReceiptData = async (
   id: string,
-  newStatus: ReceiptStatus
+  data: Partial<Receipt>
 ) => {
-  console.log(`Marking status as ${newStatus}`);
-  return await redisClient.set(id, newStatus);
+  return await redisClient.set(id, data);
 };
+
+export { verifySignatureEdge }
