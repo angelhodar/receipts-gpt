@@ -5,7 +5,6 @@ export enum ReceiptStatus {
 
 export interface ReceiptItem {
   quantity: number;
-  unit_price: number;
   price: number;
   name: string;
 }
@@ -13,5 +12,5 @@ export interface ReceiptItem {
 export interface Receipt {
   key: string
   status: ReceiptStatus
-  data?: { items: ReceiptItem[], total: number }
+  data?: { items: ReceiptItem[] }
 }

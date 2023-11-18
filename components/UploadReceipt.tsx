@@ -29,7 +29,7 @@ const UploadReceiptInput = ({
     const url = new URL("/api/upload", window.origin);
 
     url.searchParams.append("file", file.name);
-    url.searchParams.append("fileType", file.type);
+    url.searchParams.append("type", file.type);
 
     setUploading(true);
 
@@ -37,20 +37,15 @@ const UploadReceiptInput = ({
 
     const { url: uploadUrl } = await res.json();
 
-    const formData = new FormData();
-
-    formData.append("file", file)
-
-    const abortController = new AbortController();
-    const { signal } = abortController;
+    const { signal } = new AbortController();
 
     try {
       const upload = await fetch(uploadUrl, {
         method: "PUT",
-        body: formData,
+        body: file,
         signal,
       });
-      
+
       if (upload.ok) {
         console.log("Uploaded successfully!");
         const id = getReceiptIDFromURL(uploadUrl)
@@ -118,9 +113,6 @@ const UploadReceiptInput = ({
           />
         </Label>
       </div>
-      <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
-        PNG, JPG or GIF (max 10MB)
-      </p>
     </div>
   );
 };

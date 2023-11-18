@@ -17,7 +17,6 @@ export default function ReceiptItem({ item }: { item: ReceiptItem }) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-xl">Unit: {item.unit_price}€</p>
         <p className="text-xl">Total: {item.price}€</p>
       </CardContent>
       <CardFooter className="space-x-4">

@@ -3,14 +3,16 @@ import { z } from "zod"
 import { generatePresignedURL } from "@/lib/storage"
 
 const queryParamsSchema = z.object({
-  file: z.string().min(1, "Parameter is required")
+  file: z.string().min(1, "Parameter is required"),
+  type: z.string().min(1, "Parameter is required")
 });
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
   const parseResult = queryParamsSchema.safeParse({
-    file: searchParams.get("file")
+    file: searchParams.get("file"),
+    type: searchParams.get("type")
   });
 
   if (!parseResult.success) {
@@ -22,7 +24,7 @@ export async function GET(request: Request) {
     });
   }
 
-  const url = await generatePresignedURL(parseResult.data.file);
+  const url = await generatePresignedURL(parseResult.data.file, parseResult.data.type);
 
   return NextResponse.json({ url });
 }

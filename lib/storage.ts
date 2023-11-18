@@ -44,13 +44,14 @@ export async function getReceiptStorageKey(id: string) {
   return null
 }
 
-export async function generatePresignedURL(file: string) {
+export async function generatePresignedURL(file: string, type: string) {
   const ext = file.split(".").at(-1);
   const newFileName = `${crypto.randomUUID()}.${ext}`;
 
   const command = new PutObjectCommand({
     Bucket: bucket,
-    Key: newFileName
+    Key: newFileName,
+    ContentType: type
   });
 
   const url = await getSignedUrl(s3Client, command, { expiresIn: expirationTime });

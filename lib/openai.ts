@@ -6,26 +6,18 @@ const openai = new OpenAI({
 
 const parametersToParse = {
   type: "object",
-  required: ["items", "total"],
+  required: ["items"],
   properties: {
-    total: {
-      type: "number",
-      description: "The total price of the receipt",
-    },
     items: {
       type: "array",
       description: "The array of parsed items",
       items: {
         type: "object",
-        required: ["quantity", "unit_price", "name", "price"],
+        required: ["quantity", "name", "price"],
         properties: {
           quantity: {
             type: "number",
             description: "The quantity of an item",
-          },
-          unit_price: {
-            type: "number",
-            description: "The unit price of the item",
           },
           name: {
             type: "string",
@@ -42,11 +34,11 @@ const parametersToParse = {
 }
 
 const createPrompt = () => `
-Give me the list of items that have been ordered in the receipt, including the total amount, with the following output JSON format:
+Give me the list of items that have been ordered in the receipt, with the following output JSON format:
 
-{ total: number, items: [{ "quantity": number, "unit_price": number, "name": string, "price": number }]}
+[{ "quantity": number, "name": string, "price": number }]
 
-If you cant parse price or unit_price as number, leave it as 0
+If you cant parse price as number, leave it as 0
 
 The JSON object is:
 `;
@@ -54,7 +46,7 @@ The JSON object is:
 export async function parseReceipt(receiptUrl: string) {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4-1106-preview",
+      model: "gpt-4-vision-preview",
       messages: [
         {
           role: "user",
@@ -65,8 +57,11 @@ export async function parseReceipt(receiptUrl: string) {
         }],
       temperature: 0,
       max_tokens: 2000,
-      response_format: { type: "json_object" },
-      /*tools: [
+      /*
+      1. Not available at the moment so we need to parse using regex
+      response_format: { type: "json_object" }, 
+      2. Function calls also not available
+      tools: [
         {
           type: "function", function: {
             name: "print",
@@ -80,12 +75,18 @@ export async function parseReceipt(receiptUrl: string) {
       }*/
     })
 
-    const output = response.choices[0].message.content//?.function_call?.arguments as string
+    const output = response.choices[0].message.content
 
     if (!output) return null
 
-    const { total, items } = JSON.parse(output);
-    return { total, items };
+    const match = output?.match(/```json\n(.*?)\n```/s);
+
+    if (!match) return null
+
+    const json = match[1];
+    const data = JSON.parse(json);
+
+    return { items: data }
   } catch (error: any) {
     console.error(error);
     return null;

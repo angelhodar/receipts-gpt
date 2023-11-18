@@ -19,9 +19,11 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
   await setReceiptData(id, receiptData);
 
-  const endpoint = `${getOrigin(req)}/receipts/${id}/parse`
+  const endpoint = `${"http://localhost:3000"}/api/receipts/${id}/parse`
 
-  await enqueueReceipt({ endpoint, message: { receiptUrl: receiptKey } });
+  //await enqueueReceipt({ endpoint, message: { receiptKey } });
+
+  fetch(endpoint, { method: "POST", body: JSON.stringify({ receiptKey }) })
 
   return NextResponse.json(receiptData);
 }

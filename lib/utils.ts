@@ -12,7 +12,7 @@ export const getOrigin = (req?: Request) => {
 
     const protocol = forwardedProto === 'https' ? 'https' : 'http';
 
-    return `${protocol}://${host?.includes("localhost") ? "https://receiptsgpt.loca.lt" : host}`
+    return `${protocol}://${host}`
   }
 
   return window.location.origin

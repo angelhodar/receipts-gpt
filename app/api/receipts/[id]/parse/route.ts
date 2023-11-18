@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod"
 // import { getStorageObjectUrl } from "@/lib/storage"
 import { parseReceipt } from "@/lib/openai";
-import { setReceiptData, verifySignatureEdge } from "@/lib/redis";
+import { getReceiptData, setReceiptData } from "@/lib/redis";
 import { ReceiptStatus } from "@/types";
 
 export function getStorageObjectUrl(objectKey: string) {
@@ -18,11 +18,9 @@ const bodySchema = z.object({
 async function handler(request: NextRequest, { params }: { params: { id: string } }) {
   const id = params.id;
 
-  console.log(id)
+  const receipt = await getReceiptData(id);
 
   const body = await request.json();
-
-  console.log(body)
 
   const parseResult = bodySchema.safeParse(body);
 
@@ -37,13 +35,11 @@ async function handler(request: NextRequest, { params }: { params: { id: string 
 
   const receiptUrl = getStorageObjectUrl(parseResult.data.receiptKey)
 
-  console.log(receiptUrl)
-
   const parsedReceipt = await parseReceipt(receiptUrl);
 
   if (!parsedReceipt) throw new Error("Could not parse receipt")
 
-  const receiptData = { status: ReceiptStatus.PROCESSED, ...parseReceipt }
+  const receiptData = { ...receipt, status: ReceiptStatus.PROCESSED, data: parsedReceipt }
 
   await setReceiptData(id, receiptData);
 
