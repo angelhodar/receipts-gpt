@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod"
-// import { getStorageObjectUrl } from "@/lib/storage"
 import { parseReceipt } from "@/lib/openai";
 import { getReceiptData, setReceiptData } from "@/lib/redis";
+import { getReceiptURLFromID } from "@/lib/utils";
 import { ReceiptStatus } from "@/types";
-
-export function getStorageObjectUrl(objectKey: string) {
-  return `https://receiptsgpt.s3.eu-west-3.amazonaws.com/${objectKey}`;
-}
 
 export const runtime = "edge";
 
@@ -33,7 +29,7 @@ async function handler(request: NextRequest, { params }: { params: { id: string 
     });
   }
 
-  const receiptUrl = getStorageObjectUrl(parseResult.data.receiptKey)
+  const receiptUrl = getReceiptURLFromID(parseResult.data.receiptKey)
 
   const parsedReceipt = await parseReceipt(receiptUrl);
 

@@ -30,3 +30,7 @@ export const getReceiptIDFromURL = (url: string): string => {
 
   return "";
 }
+
+export function getReceiptURLFromID(objectKey: string) {
+  return `https://receiptsgpt.s3.eu-west-3.amazonaws.com/${objectKey}`;
+}

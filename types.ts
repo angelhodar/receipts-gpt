@@ -13,4 +13,5 @@ export interface Receipt {
   key: string
   status: ReceiptStatus
   data?: { items: ReceiptItem[] }
+  error?: string
 }

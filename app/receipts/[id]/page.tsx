@@ -13,9 +13,15 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge";
 import NumberInput from "@/components/NumberInput"
-import { Receipt, ReceiptItem } from "@/types";
+import { Receipt, ReceiptItem, ReceiptStatus } from "@/types";
 
-type SelectedReceiptItem = ReceiptItem & { share: number }
+interface SelectionMetadata {
+  index: number
+  selectedShare: number
+  selectedQuantity: number
+}
+
+type SelectedReceiptItem = ReceiptItem & SelectionMetadata
 
 const getReceipt = async (id: string) => {
   const res = await fetch(`/api/receipts/${id}`);
@@ -34,38 +40,41 @@ export default function Receipt({ params }: { params: { id: string } }) {
 
   const toggleItem = (item: ReceiptItem, index: number) => {
     setSelectedItems(prev => {
-      const existingIndex = prev.findIndex(si => si.name === item.name);
-      if (existingIndex !== -1) {
-        return prev.filter((_, i) => i !== existingIndex);
-      }
-      return [...prev, { ...item, share: 1 }];
+      const existingItem = prev.find(si => si.index === index);
+      if (existingItem) return prev.filter(si => si.index !== index);
+      const selectedItem = { ...item, selectedQuantity: item.quantity, selectedShare: 1, index }
+      return [...prev, selectedItem];
     });
   };
 
-  const updateQuantity = (itemName: string, quantity: number) => {
+  const updateQuantity = (index: number, quantity: number) => {
     setSelectedItems(prev =>
-      prev.map(item => 
-        item.name === itemName ? { ...item, quantity } : item
+      prev.map(item =>
+        item.index === index ? { ...item, selectedQuantity: quantity } : item
       )
     );
   };
 
-  const updateShare = (itemName: string, share: number) => {
+  const updateShare = (index: number, share: number) => {
     setSelectedItems(prev =>
-      prev.map(item => 
-        item.name === itemName ? { ...item, share } : item
+      prev.map(item =>
+        item.index === index ? { ...item, selectedShare: share } : item
       )
     );
   };
 
   const items = (data?.data?.items || []) as ReceiptItem[]
-  const total = items.reduce((acc, item) => acc + item.price, 0)
+  const consumedTotal = selectedItems.reduce((acc, item) => {
+    if (item.selectedShare > 1) return (item.price / item.selectedShare) + acc
+    const unit_price = item.price / item.quantity
+    return unit_price * item.selectedQuantity + acc
+  }, 0)
 
   return (
     <div className="flex flex-col space-y-5">
-      <div className="inline-flex flex-row items-center space-x-2">
+      <div className="inline-flex flex-col items-start md:flex-row md:items-center gap-4">
         <h2 className="text-xl font-semibold">Receipt: {params.id}</h2>
-        <Badge className="text-md">{data?.status}</Badge>
+        <Badge className="text-md">{data?.status === ReceiptStatus.PROCESSED ? "Processed": "Processing..."}</Badge>
       </div>
 
       <Table>
@@ -79,27 +88,27 @@ export default function Receipt({ params }: { params: { id: string } }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {items.map((item: ReceiptItem, i: number) => (
-            <TableRow key={i}>
+          {items.map((item: ReceiptItem, index: number) => (
+            <TableRow key={index}>
               <TableCell>
-                <input 
-                  type="checkbox" 
-                  checked={selectedItems.some(si => si.name === item.name)} 
-                  onChange={() => toggleItem(item, i)} 
+                <input
+                  type="checkbox"
+                  checked={selectedItems.some(si => si.name === item.name)}
+                  onChange={() => toggleItem(item, index)}
                 />
               </TableCell>
-              <TableCell className="font-medium">{item.name}</TableCell>
+              <TableCell className="font-medium whitespace-nowrap">{item.name}</TableCell>
               <TableCell className="text-center">
-                <NumberInput 
-                  value={selectedItems.find(si => si.name === item.name)?.quantity || item.quantity} 
-                  onChange={(value) => updateQuantity(item.name, value)} 
+                <NumberInput
+                  value={selectedItems.find(si => index === si.index)?.selectedQuantity || item.quantity}
+                  max={item.quantity}
+                  onChange={(value) => updateQuantity(index, value)}
                 />
               </TableCell>
               <TableCell className="text-center">
-                <NumberInput 
-                  value={selectedItems.find(si => si.name === item.name)?.share || 1} 
-                  onChange={(value) => updateShare(item.name, value)} 
-                  //disabled={!selectedItems.some(si => si.name === item.name)} 
+                <NumberInput
+                  value={selectedItems.find(si => index === si.index)?.selectedShare || 1}
+                  onChange={(value) => updateShare(index, value)}
                 />
               </TableCell>
               <TableCell className="text-right">{item.price}</TableCell>
@@ -109,7 +118,7 @@ export default function Receipt({ params }: { params: { id: string } }) {
         <TableFooter>
           <TableRow>
             <TableCell colSpan={4}>Total</TableCell>
-            <TableCell className="text-right">{total.toFixed(2)}</TableCell>
+            <TableCell className="text-right">{consumedTotal.toFixed(2)}</TableCell>
           </TableRow>
         </TableFooter>
       </Table>
