@@ -14,6 +14,8 @@ const bodySchema = z.object({
 async function handler(request: NextRequest, { params }: { params: { id: string } }) {
   const id = params.id;
 
+  console.log("Received request to parse receipt" + id)
+
   const receipt = await getReceiptData(id);
 
   const body = await request.json();

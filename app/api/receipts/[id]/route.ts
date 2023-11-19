@@ -31,12 +31,21 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   if (!receiptKey) throw new Error("No receipt found with the provided id")
 
   const resizedReceiptKey = await resizeReceipt(receiptKey)
+  console.log("Receipt resized")
   const receiptData: Receipt = { status: ReceiptStatus.QUEUED, key: resizedReceiptKey }
 
   await setReceiptData(id, receiptData);
-  await remove(receiptKey)
+  console.log("Setup receipt data in redis")
 
-  enqueueReceipt({ endpoint: `${getOrigin(req)}/api/receipts/${id}/parse`, message: { receiptKey: resizedReceiptKey } });
+  await remove(receiptKey)
+  console.log("Unoptimized receipt removed")
+
+  console.log("Before enqueue")
+
+  const origin = getOrigin(req)
+  console.log(origin)
+
+  enqueueReceipt({ endpoint: `${origin}/api/receipts/${id}/parse`, message: { receiptKey: resizedReceiptKey } });
 
   return NextResponse.json(receiptData);
 }
