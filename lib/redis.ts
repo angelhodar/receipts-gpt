@@ -18,17 +18,13 @@ const redisClient = new Redis({
 });
 
 export const enqueueReceipt = async ({ endpoint, message }: NotificationProps) => {
-  fetch(endpoint, { method: "POST", body: JSON.stringify(message) })
-  /*if (endpoint.includes("localhost")) {
-    
-  }
-  else {
-    qstashClient.publish({
-      url: endpoint,
-      body: JSON.stringify(message),
-      headers: { content: "application/json" },
-    });
-  }*/
+  const messageId = await qstashClient.publishJSON({
+    url: endpoint,
+    body: message,
+    headers: { content: "application/json" },
+  });
+
+  console.log(messageId)
 };
 
 export const getReceiptData = async (id: string): Promise<Receipt | null> => {

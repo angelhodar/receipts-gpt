@@ -43,7 +43,6 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   console.log("Before enqueue")
 
   const origin = getOrigin(req)
-  console.log(origin)
 
   enqueueReceipt({ endpoint: `${origin}/api/receipts/${id}/parse`, message: { receiptKey: resizedReceiptKey } });
 
